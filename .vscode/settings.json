@@ -1,0 +1,17 @@
+{
+    "C_Cpp.default.compilerPath": "c:/program files (x86)/arm gnu toolchain arm-none-eabi/14.3 rel1/bin/arm-none-eabi-gcc.exe",
+    "cortex-debug.variableUseNaturalFormat": true,
+    "files.associations": {
+        "acu.h": "c",
+        "bcc_communication.h": "c",
+        "bcc.h": "c",
+        "state.h": "c",
+        "battery.h": "c",
+        "config.h": "c",
+        "debug.h": "c",
+        "type_traits": "c"
+    }
+    // "files.associations": {
+    //     "errno.h": "c"
+    // }
+}
