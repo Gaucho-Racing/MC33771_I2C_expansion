@@ -1,0 +1,25 @@
+# ninja log v7
+46	148	7745799696532050	CMakeFiles/ThermistorExpansion_MC33771C.dir/startup_stm32g474xx.s.obj	770c3bd2d1188754
+34	242	7745799696408295	CMakeFiles/ThermistorExpansion_MC33771C.dir/Core/Src/sysmem.c.obj	23e919c30ec2caa3
+19	245	7745799696252823	CMakeFiles/ThermistorExpansion_MC33771C.dir/Core/Src/dma.c.obj	3187ba5b1883c92b
+24	246	7745799696272871	CMakeFiles/ThermistorExpansion_MC33771C.dir/Core/Src/i2c.c.obj	167ff2f1348fde5a
+52	248	7745799696592465	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Core/Src/system_stm32g4xx.c.obj	2a3feb382c7a06c
+9	249	7745799696130320	CMakeFiles/ThermistorExpansion_MC33771C.dir/Core/Src/gpio.c.obj	df8a46b16d553cd
+64	266	7745799696702468	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_ll_exti.c.obj	fde700b26bfa6a6b
+14	266	7745799696216712	CMakeFiles/ThermistorExpansion_MC33771C.dir/Core/Src/adc.c.obj	8584afff9e6a3cea
+78	267	7745799696849359	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_ll_adc.c.obj	b2742536f6d66ec7
+58	270	7745799696652468	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_ll_utils.c.obj	783e404d708e1b20
+71	270	7745799696754844	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_ll_gpio.c.obj	ecd47f22ac30395b
+148	282	7745799697530212	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_ll_dma.c.obj	48b8f5a231975842
+40	312	7745799696468292	CMakeFiles/ThermistorExpansion_MC33771C.dir/Core/Src/syscalls.c.obj	72c16d034d2dae26
+27	105	7745800041991393	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_ll_pwr.c.obj	9968b3f87d75301b
+33	112	7745800042074577	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_ll_i2c.c.obj	a02b6a67e78fed8f
+21	126	7745800041951304	CMakeFiles/ThermistorExpansion_MC33771C.dir/Core/Src/stm32g4xx_it.c.obj	52358ac007915e40
+13	137	7745800041867129	CMakeFiles/ThermistorExpansion_MC33771C.dir/Core/Src/main.c.obj	2d22c9f3df321132
+137	222	7745800043106949	ThermistorExpansion_MC33771C.elf	80f79e2c32b4af61
+18	108	7745816703111362	CMakeFiles/ThermistorExpansion_MC33771C.dir/Core/Src/stm32g4xx_it.c.obj	52358ac007915e40
+13	121	7745816703111362	CMakeFiles/ThermistorExpansion_MC33771C.dir/Core/Src/main.c.obj	2d22c9f3df321132
+121	191	7745816704238849	ThermistorExpansion_MC33771C.elf	80f79e2c32b4af61
+74	353	7745873774739234	CMakeFiles/ThermistorExpansion_MC33771C.dir/Core/Src/stm32g4xx_it.c.obj	52358ac007915e40
+17	389	7745873774159582	CMakeFiles/ThermistorExpansion_MC33771C.dir/Core/Src/main.c.obj	2d22c9f3df321132
+389	678	7745873777887129	ThermistorExpansion_MC33771C.elf	80f79e2c32b4af61
