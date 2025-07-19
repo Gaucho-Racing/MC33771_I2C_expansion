@@ -127,7 +127,7 @@ void MX_ADC1_Init(void)
   LL_ADC_REG_Init(ADC1, &ADC_REG_InitStruct);
   LL_ADC_SetGainCompensation(ADC1, 0);
   LL_ADC_SetOverSamplingScope(ADC1, LL_ADC_OVS_DISABLE);
-  ADC_CommonInitStruct.CommonClock = LL_ADC_CLOCK_SYNC_PCLK_DIV1;
+  ADC_CommonInitStruct.CommonClock = LL_ADC_CLOCK_SYNC_PCLK_DIV4;
   ADC_CommonInitStruct.Multimode = LL_ADC_MULTI_INDEPENDENT;
   LL_ADC_CommonInit(__LL_ADC_COMMON_INSTANCE(ADC1), &ADC_CommonInitStruct);
 
@@ -190,7 +190,8 @@ void MX_ADC1_Init(void)
   LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_9, LL_ADC_SAMPLINGTIME_2CYCLES_5);
   LL_ADC_SetChannelSingleDiff(ADC1, LL_ADC_CHANNEL_9, LL_ADC_SINGLE_ENDED);
   /* USER CODE BEGIN ADC1_Init 2 */
-
+  LL_ADC_StartCalibration(ADC1, LL_ADC_SINGLE_ENDED);
+  while (LL_ADC_IsCalibrationOnGoing(ADC1));
   /* USER CODE END ADC1_Init 2 */
 
 }
@@ -344,7 +345,8 @@ void MX_ADC2_Init(void)
   LL_ADC_SetChannelSamplingTime(ADC2, LL_ADC_CHANNEL_17, LL_ADC_SAMPLINGTIME_640CYCLES_5);
   LL_ADC_SetChannelSingleDiff(ADC2, LL_ADC_CHANNEL_17, LL_ADC_SINGLE_ENDED);
   /* USER CODE BEGIN ADC2_Init 2 */
-
+  LL_ADC_StartCalibration(ADC2, LL_ADC_SINGLE_ENDED);
+  while (LL_ADC_IsCalibrationOnGoing(ADC2));
   /* USER CODE END ADC2_Init 2 */
 
 }

@@ -25,7 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <math.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -46,13 +46,18 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+volatile uint16_t ADC_data[15];
+volatile uint8_t cursor = 0;
+volatile float temperatures[13];
+volatile uint8_t EEPROM_data[256] = {0};
+volatile uint8_t ADC_update_flag = 0; // [NA|NA|NA|NA|NA|NA|ADC2|ADC1]
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
+float V2T(float voltage, float B);
+void I2C_reset();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -113,7 +118,35 @@ int main(void)
   MX_ADC2_Init();
   MX_I2C3_Init();
   /* USER CODE BEGIN 2 */
+  // Enable I2C
+  LL_I2C_Enable(I2C3);
+  // Enable all I²C-slave interrupts we rely on
+  LL_I2C_EnableIT_ADDR(I2C3);
+  LL_I2C_EnableIT_STOP(I2C3);
+  LL_I2C_EnableIT_NACK(I2C3);
+  LL_I2C_EnableIT_ERR(I2C3);
+  // Flush flags that CubeMX leaves uncleared
+  LL_I2C_ClearFlag_ADDR(I2C3);
+  LL_I2C_ClearFlag_STOP(I2C3);
+  LL_I2C_ClearFlag_NACK(I2C3);
 
+  // Enable ADC1 with DMA
+  LL_ADC_Enable(ADC1);
+  while (!LL_ADC_IsActiveFlag_ADRDY(ADC1));
+  LL_DMA_SetPeriphAddress(DMA1, LL_DMA_CHANNEL_1, (uint32_t)&ADC1->DR);
+  LL_DMA_SetMemoryAddress(DMA1, LL_DMA_CHANNEL_1, (uint32_t)&ADC_data[0]);
+  LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_1, 7);
+  LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_1);
+  LL_ADC_REG_StartConversion(ADC1);
+
+  // Enable ADC2 with DMA
+  LL_ADC_Enable(ADC2);
+  while (!LL_ADC_IsActiveFlag_ADRDY(ADC2));
+  LL_DMA_SetPeriphAddress(DMA1, LL_DMA_CHANNEL_2, (uint32_t)&ADC2->DR);
+  LL_DMA_SetMemoryAddress(DMA1, LL_DMA_CHANNEL_2, (uint32_t)&ADC_data[7]);
+  LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_2, 6);
+  LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_2);
+  LL_ADC_REG_StartConversion(ADC2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -121,7 +154,22 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
+    if (ADC_update_flag & 1) {
+      // ADC1 finished conversion sequence
+      for (uint8_t i = 0; i < 7; i++) {
+        EEPROM_data[i] = ADC_data[i] >> 4;
+        temperatures[i] = V2T((float)ADC_data[i] / 4096.0f, 3950.0f);
+        EEPROM_data[i + 128] = (uint8_t)(temperatures[i] + 40.0f);
+      }
+    }
+    if (ADC_update_flag & 2) {
+      // ADC1 finished conversion sequence
+      for (uint8_t i = 7; i < 13; i++) {
+        EEPROM_data[i] = ADC_data[i] >> 4;
+        temperatures[i] = V2T((float)ADC_data[i] / 4096.0f, 3950.0f);
+        EEPROM_data[i + 128] = (uint8_t)(temperatures[i] + 40.0f);
+      }
+    }
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -162,7 +210,25 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+float V2T(float ratio, float B) {
+  float R = ratio / (1.0f - ratio) * 47.0f;
+  float T = 1.0f / ((logf(R / 100.0f) / B) + (1.0f / 298.15f));
+  return T - 273.15f;
+}
 
+void I2C_reset() {
+  cursor = 0;
+  LL_I2C_Disable(I2C3);
+  LL_I2C_ClearFlag_ADDR(I2C3);
+  LL_I2C_ClearFlag_ARLO(I2C3);
+  LL_I2C_ClearFlag_BERR(I2C3);
+  LL_I2C_ClearFlag_NACK(I2C3);
+  LL_I2C_ClearFlag_OVR(I2C3);
+  LL_I2C_ClearFlag_STOP(I2C3);
+  LL_I2C_ClearFlag_TXE(I2C3);
+  LL_mDelay(1);
+  LL_I2C_Enable(I2C3);
+}
 /* USER CODE END 4 */
 
 /**

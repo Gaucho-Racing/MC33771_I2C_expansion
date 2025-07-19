@@ -46,7 +46,8 @@
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN PFP */
-
+extern float V2T(float voltage, float B);
+extern void I2C_reset();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -57,7 +58,11 @@
 /* External variables --------------------------------------------------------*/
 
 /* USER CODE BEGIN EV */
-
+extern volatile uint16_t ADC_data[15];
+extern volatile uint8_t cursor;
+extern volatile float temperatures[13];
+extern volatile uint8_t EEPROM_data[256];
+extern volatile uint8_t ADC_update_flag;
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -204,7 +209,8 @@ void SysTick_Handler(void)
 void DMA1_Channel1_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Channel1_IRQn 0 */
-
+  LL_DMA_ClearFlag_TC1(DMA1);
+  ADC_update_flag |= 1;
   /* USER CODE END DMA1_Channel1_IRQn 0 */
   /* USER CODE BEGIN DMA1_Channel1_IRQn 1 */
 
@@ -217,7 +223,8 @@ void DMA1_Channel1_IRQHandler(void)
 void DMA1_Channel2_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Channel2_IRQn 0 */
-
+  LL_DMA_ClearFlag_TC2(DMA1);
+  ADC_update_flag |= 2;
   /* USER CODE END DMA1_Channel2_IRQn 0 */
   /* USER CODE BEGIN DMA1_Channel2_IRQn 1 */
 
@@ -230,7 +237,43 @@ void DMA1_Channel2_IRQHandler(void)
 void I2C3_EV_IRQHandler(void)
 {
   /* USER CODE BEGIN I2C3_EV_IRQn 0 */
+  if (LL_I2C_IsActiveFlag_ADDR(I2C3)) {
+    if (LL_I2C_GetAddressMatchCode(I2C1) != 0b10100000) {
+      LL_I2C_ClearFlag_ADDR(I2C3);
+      I2C_reset();
+      return;
+    }
 
+    if (LL_I2C_GetTransferDirection(I2C3) == LL_I2C_DIRECTION_READ) {
+      LL_I2C_EnableIT_TX(I2C3);
+    }
+    else if (LL_I2C_GetTransferDirection(I2C3) == LL_I2C_DIRECTION_WRITE) {
+      LL_I2C_EnableIT_RX(I2C3);
+    }
+    else {
+      I2C_reset();
+    }
+    LL_I2C_ClearFlag_ADDR(I2C3);
+  }
+
+  else if (LL_I2C_IsActiveFlag_NACK(I2C3)) {
+    LL_I2C_ClearFlag_NACK(I2C3);
+    LL_I2C_DisableIT_TX(I2C3);
+  }
+
+  else if (LL_I2C_IsActiveFlag_STOP(I2C3)) {
+    LL_I2C_ClearFlag_STOP(I2C3);
+    LL_I2C_DisableIT_TX(I2C3);
+  }
+
+  else if (LL_I2C_IsActiveFlag_TXIS(I2C3)) {
+    LL_I2C_TransmitData8(I2C3, EEPROM_data[cursor]);
+    cursor++;
+  }
+
+  else if (LL_I2C_IsActiveFlag_RXNE(I2C3)) {
+    cursor = LL_I2C_ReceiveData8(I2C3);
+  }
   /* USER CODE END I2C3_EV_IRQn 0 */
   /* USER CODE BEGIN I2C3_EV_IRQn 1 */
 
@@ -243,7 +286,10 @@ void I2C3_EV_IRQHandler(void)
 void I2C3_ER_IRQHandler(void)
 {
   /* USER CODE BEGIN I2C3_ER_IRQn 0 */
-
+  LL_I2C_ClearFlag_BERR(I2C3);
+  LL_I2C_ClearFlag_ARLO(I2C3);
+  LL_I2C_ClearFlag_OVR(I2C3);
+  I2C_reset();
   /* USER CODE END I2C3_ER_IRQn 0 */
   /* USER CODE BEGIN I2C3_ER_IRQn 1 */
 
