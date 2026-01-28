@@ -163,7 +163,7 @@ int main(void)
       }
     }
     if (ADC_update_flag & 2) {
-      // ADC1 finished conversion sequence
+      // ADC2 finished conversion sequence
       for (uint8_t i = 7; i < 13; i++) {
         EEPROM_data[i] = ADC_data[i] >> 4;
         temperatures[i] = V2T((float)ADC_data[i] / 4096.0f, 3950.0f);

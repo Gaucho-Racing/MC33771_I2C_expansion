@@ -9,7 +9,8 @@
         "battery.h": "c",
         "config.h": "c",
         "debug.h": "c",
-        "type_traits": "c"
+        "type_traits": "c",
+        "cmath": "c"
     }
     // "files.associations": {
     //     "errno.h": "c"

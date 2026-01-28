@@ -1,8 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"C:/GauchoRacing/GR26/ThermistorExpansion_MC33771C/build/Debug/cmake_install.cmake",
-		"C:/GauchoRacing/GR26/ThermistorExpansion_MC33771C/build/Debug/cmake/stm32cubemx/cmake_install.cmake"
-	],
-	"Parallel" : false
-}
