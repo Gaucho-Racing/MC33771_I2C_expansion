@@ -63,6 +63,9 @@ extern volatile uint8_t cursor;
 extern volatile float temperatures[13];
 extern volatile uint8_t EEPROM_data[256];
 extern volatile uint8_t ADC_update_flag;
+
+extern void print(char* arr);
+extern char printBuffer[256];
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -210,7 +213,8 @@ void DMA1_Channel1_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Channel1_IRQn 0 */
   LL_DMA_ClearFlag_TC1(DMA1);
-  ADC_update_flag |= 1;
+  ADC_update_flag |= 1U;
+  // print("DMA1_Ch1_IRQ\n");
   /* USER CODE END DMA1_Channel1_IRQn 0 */
   /* USER CODE BEGIN DMA1_Channel1_IRQn 1 */
 
@@ -224,11 +228,26 @@ void DMA1_Channel2_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Channel2_IRQn 0 */
   LL_DMA_ClearFlag_TC2(DMA1);
-  ADC_update_flag |= 2;
+  ADC_update_flag |= 2U;
+  // print("DMA1_Ch2_IRQ\n");
   /* USER CODE END DMA1_Channel2_IRQn 0 */
   /* USER CODE BEGIN DMA1_Channel2_IRQn 1 */
 
   /* USER CODE END DMA1_Channel2_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM2 global interrupt.
+  */
+void TIM2_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM2_IRQn 0 */
+  LL_TIM_ClearFlag_UPDATE(TIM2);
+  // print("TIM2 update\n");
+  /* USER CODE END TIM2_IRQn 0 */
+  /* USER CODE BEGIN TIM2_IRQn 1 */
+
+  /* USER CODE END TIM2_IRQn 1 */
 }
 
 /**
@@ -238,7 +257,8 @@ void I2C3_EV_IRQHandler(void)
 {
   /* USER CODE BEGIN I2C3_EV_IRQn 0 */
   if (LL_I2C_IsActiveFlag_ADDR(I2C3)) {
-    if (LL_I2C_GetAddressMatchCode(I2C1) != 0b10100000) {
+    if (LL_I2C_GetAddressMatchCode(I2C3) != 0b10100000) {
+      print("I2C ID mismatch\n");
       LL_I2C_ClearFlag_ADDR(I2C3);
       I2C_reset();
       return;
@@ -246,9 +266,11 @@ void I2C3_EV_IRQHandler(void)
 
     if (LL_I2C_GetTransferDirection(I2C3) == LL_I2C_DIRECTION_READ) {
       LL_I2C_EnableIT_TX(I2C3);
+      // print("I2C read\n");
     }
     else if (LL_I2C_GetTransferDirection(I2C3) == LL_I2C_DIRECTION_WRITE) {
       LL_I2C_EnableIT_RX(I2C3);
+      // print("I2C write\n");
     }
     else {
       I2C_reset();
@@ -259,20 +281,24 @@ void I2C3_EV_IRQHandler(void)
   else if (LL_I2C_IsActiveFlag_NACK(I2C3)) {
     LL_I2C_ClearFlag_NACK(I2C3);
     LL_I2C_DisableIT_TX(I2C3);
+    // print("I2C nack\n");
   }
 
   else if (LL_I2C_IsActiveFlag_STOP(I2C3)) {
     LL_I2C_ClearFlag_STOP(I2C3);
     LL_I2C_DisableIT_TX(I2C3);
+    // print("I2C stop\n");
   }
 
   else if (LL_I2C_IsActiveFlag_TXIS(I2C3)) {
     LL_I2C_TransmitData8(I2C3, EEPROM_data[cursor]);
     cursor++;
+    // print("I2C transmit\n");
   }
 
   else if (LL_I2C_IsActiveFlag_RXNE(I2C3)) {
     cursor = LL_I2C_ReceiveData8(I2C3);
+    // print("I2C recieve\n");
   }
   /* USER CODE END I2C3_EV_IRQn 0 */
   /* USER CODE BEGIN I2C3_EV_IRQn 1 */
@@ -290,6 +316,7 @@ void I2C3_ER_IRQHandler(void)
   LL_I2C_ClearFlag_ARLO(I2C3);
   LL_I2C_ClearFlag_OVR(I2C3);
   I2C_reset();
+  print("I2C error\n");
   /* USER CODE END I2C3_ER_IRQn 0 */
   /* USER CODE BEGIN I2C3_ER_IRQn 1 */
 

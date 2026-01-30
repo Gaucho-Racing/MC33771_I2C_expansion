@@ -21,11 +21,14 @@
 #include "adc.h"
 #include "dma.h"
 #include "i2c.h"
+#include "tim.h"
+#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <math.h>
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -51,6 +54,7 @@ volatile uint8_t cursor = 0;
 volatile float temperatures[13];
 volatile uint8_t EEPROM_data[256] = {0};
 volatile uint8_t ADC_update_flag = 0; // [NA|NA|NA|NA|NA|NA|ADC2|ADC1]
+char printBuffer[256] = {0};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -58,6 +62,14 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 float V2T(float voltage, float B);
 void I2C_reset();
+void print(char* arr) {
+  uint32_t idx = 0; // index
+  while (arr[idx]) {
+    while (!LL_USART_IsActiveFlag_TXE(UART4));
+    LL_USART_TransmitData8(UART4, arr[idx]);
+    idx++;
+  }
+}
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -117,6 +129,8 @@ int main(void)
   MX_ADC1_Init();
   MX_ADC2_Init();
   MX_I2C3_Init();
+  MX_UART4_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   // Enable I2C
   LL_I2C_Enable(I2C3);
@@ -132,11 +146,12 @@ int main(void)
 
   // Enable ADC1 with DMA
   LL_ADC_Enable(ADC1);
-  while (!LL_ADC_IsActiveFlag_ADRDY(ADC1));
+  while (!LL_ADC_IsActiveFlag_ADRDY(ADC1)); 
   LL_DMA_SetPeriphAddress(DMA1, LL_DMA_CHANNEL_1, (uint32_t)&ADC1->DR);
   LL_DMA_SetMemoryAddress(DMA1, LL_DMA_CHANNEL_1, (uint32_t)&ADC_data[0]);
   LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_1, 7);
   LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_1);
+  LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_1);
   LL_ADC_REG_StartConversion(ADC1);
 
   // Enable ADC2 with DMA
@@ -146,30 +161,47 @@ int main(void)
   LL_DMA_SetMemoryAddress(DMA1, LL_DMA_CHANNEL_2, (uint32_t)&ADC_data[7]);
   LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_2, 6);
   LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_2);
+  LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_2);
   LL_ADC_REG_StartConversion(ADC2);
+
+  // Enable TIM2 (ADC trigger)
+  // LL_TIM_EnableIT_UPDATE(TIM2);
+  LL_TIM_EnableCounter(TIM2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_0);
   while (1)
   {
-    /* USER CODE END WHILE */
-    if (ADC_update_flag & 1) {
+    if (ADC_update_flag & 1U) {
       // ADC1 finished conversion sequence
+      ADC_update_flag &= ~1U;
       for (uint8_t i = 0; i < 7; i++) {
         EEPROM_data[i] = ADC_data[i] >> 4;
-        temperatures[i] = V2T((float)ADC_data[i] / 4096.0f, 3950.0f);
-        EEPROM_data[i + 128] = (uint8_t)(temperatures[i] + 40.0f);
+        temperatures[i] = V2T((float)ADC_data[i] / 4096.0f, 4200.0f);
+        EEPROM_data[i + 32] = (uint8_t)fminf(fmaxf(temperatures[i] + 40.0f, 0), 255);
+        sprintf(printBuffer, "Ch%u: %3.01f  ", i, temperatures[i]);
+        // sprintf(printBuffer, "Ch%u: %u  ", i, ADC_data[i]);
+        print(printBuffer);
       }
+      print("\n");
     }
-    if (ADC_update_flag & 2) {
+    if (ADC_update_flag & 2U) {
       // ADC2 finished conversion sequence
+      ADC_update_flag &= ~2U;
       for (uint8_t i = 7; i < 13; i++) {
         EEPROM_data[i] = ADC_data[i] >> 4;
-        temperatures[i] = V2T((float)ADC_data[i] / 4096.0f, 3950.0f);
-        EEPROM_data[i + 128] = (uint8_t)(temperatures[i] + 40.0f);
+        temperatures[i] = V2T((float)ADC_data[i] / 4096.0f, 4200.0f);
+        EEPROM_data[i + 32] = (uint8_t)fminf(fmaxf(temperatures[i] + 40.0f, 0), 255);
+        sprintf(printBuffer, "Ch%u: %3.01f  ", i, temperatures[i]);
+        // sprintf(printBuffer, "Ch%u: %u  ", i, ADC_data[i]);
+        print(printBuffer);
       }
+      print("\n");
     }
+    /* USER CODE END WHILE */
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -211,6 +243,8 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 float V2T(float ratio, float B) {
+  ratio = fmaxf(ratio, 0.001f);
+  ratio = fminf(ratio, 0.999f);
   float R = ratio / (1.0f - ratio) * 47.0f;
   float T = 1.0f / ((logf(R / 100.0f) / B) + (1.0f / 298.15f));
   return T - 273.15f;
